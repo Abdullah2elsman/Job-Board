@@ -19,6 +19,10 @@ Route::get('/jobs/{job}', [JobController::class, 'show']);
 
 // Category Routes
 Route::get('/categories', [CategoryController::class, 'index']);
+
+// Search Routes
+Route::get('/jobs/search', [JobController::class, 'search']);
+
 // protected routes
 Route::middleware('auth:sanctum')->group(function ()
 {

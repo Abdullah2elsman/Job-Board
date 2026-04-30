@@ -8,6 +8,7 @@ use App\Models\Application;
 use App\Models\Job;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 
 class ApplicationController extends Controller
 {
@@ -22,7 +23,7 @@ class ApplicationController extends Controller
             return response()->json(['message' => 'Job not found'], 404);
         }
         // ensure user doesn't apply for the same job twice
-        $exists = Application::where('candidate_id', auth()->id())
+        $exists = Application::where('candidate_id', Auth::id())
             ->where('job_id', $id)
             ->exists();
 
@@ -35,7 +36,7 @@ class ApplicationController extends Controller
         $path = $request->file('resume')->store('resumes', 'public');
 
         $application = Application::create([
-            'candidate_id' => auth()->id(),
+            'candidate_id' => Auth::id(),
             'job_id' => $id,
             'resume_path' => $path,
             'cover_letter' => $request->cover_letter,
@@ -49,7 +50,7 @@ class ApplicationController extends Controller
     public function getJobApplications(string $jobId): JsonResponse
     {
         $job = Job::where('id', $jobId)
-                  ->where('employer_id', auth()->id())
+                  ->where('employer_id', Auth::id())
                   ->firstOrFail();
 
         $applications = $job->applications()->with('candidate')->get();
@@ -69,7 +70,7 @@ class ApplicationController extends Controller
 
         $application = Application::findOrFail($id);
 
-        if ($application->job->employer_id !== auth()->id())
+        if ($application->job->employer_id !== Auth::id())
         {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
@@ -81,7 +82,7 @@ class ApplicationController extends Controller
 
     public function getMyApplications(): JsonResponse
     {
-        $applications = Application::where('candidate_id', auth()->id())->with('job')->get();
+        $applications = Application::where('candidate_id', Auth::id())->with('job')->get();
 
         return response()->json(['data' => $applications]);
     }

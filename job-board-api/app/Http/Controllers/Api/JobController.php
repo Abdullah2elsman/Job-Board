@@ -9,11 +9,32 @@ use Illuminate\Http\Request;
 
 class JobController extends Controller
 {
-    public function index()
-    {
-        $jobs = Job::with(['user', 'category'])->latest()->paginate(10);
-        return response()->json($jobs);
-    }
+    public function index(Request $request)
+{
+    $query = Job::query()->where('status', 'approved');
+
+    // 1. بحث الكلمة المفتاحية (Laravel)
+    $query->when($request->keyword, function ($q, $v) {
+        $q->where(function ($query) use ($v) {
+            $query->where('title', 'like', "%$v%")
+                  ->orWhere('description', 'like', "%$v%");
+        });
+    });
+
+    // 2. بحث المكان (استخدم like عشان لو كتب Cairo بس يشتغل)
+    $query->when($request->location, function ($q, $v) {
+        $q->where('location', 'like', "%$v%");
+    });
+
+    // 3. فلتر الراتب (تأكد من اسم العمود salary_min كما في ملفك)
+    $query->when($request->min_salary, function ($q, $v) {
+        $q->where('salary_min', '>=', $v);
+    });
+
+    $jobs = $query->with(['employer', 'category'])->latest()->paginate(10);
+
+    return response()->json($jobs);
+}
 
     public function store(JobRequest $request)
     {
@@ -42,9 +63,10 @@ class JobController extends Controller
 
     public function destroy(Request $request, Job $job)
     {
-        if ($request->user()->id !== $job->user_id) {
-        return response()->json(['message' => 'Unauthorized'], 403);
-    }
+        if ($request->user()->id !== $job->user_id)
+        {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         $job->delete();
 
         return response()->json([
