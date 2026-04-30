@@ -49,7 +49,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $user->assignRole($request->role);
+        $user->assignRole($request->role, 'api');
 
         $token = $user->createToken('auth_token')->plainTextToken;
 

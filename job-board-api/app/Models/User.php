@@ -30,6 +30,8 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    protected $guard_name = 'api';
+
     /**
      * Get the attributes that should be cast.
      *
@@ -54,9 +56,7 @@ class User extends Authenticatable
     }
 
     public function comments()
-{
-    return $this->hasMany(Comment::class);
-}
-
-
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Job;
+use App\Models\User;
+use App\Models\Category;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -29,6 +31,8 @@ class JobFactory extends Factory
         'salary_max' => fake()->numberBetween(4000, 8000),
         'status' => 'approved',
         'deadline' => now()->addMonth(),
+        'employer_id' => User::factory(), 
+        'category_id' => Category::factory(),
     ];
 }
 }
