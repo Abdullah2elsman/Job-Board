@@ -22,5 +22,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Spatie\Permission\Exceptions\UnauthorizedException $e, $request) {
+        return response()->json([
+            'message' => 'Access Denied: Only candidates can perform this action.',
+            'error' => 'Invalid Role'
+        ], 403);
+    });
     })->create();
