@@ -29,4 +29,21 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function jobs()
+    {
+        return $this->hasMany(Job::class, 'employer_id');
+    }
+
+    public function applications()
+    {
+        return $this->hasMany(Application::class, 'candidate_id');
+    }
+
+    public function comments()
+{
+    return $this->hasMany(Comment::class);
+}
+
+
 }
