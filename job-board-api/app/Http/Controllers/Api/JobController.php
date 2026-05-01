@@ -13,7 +13,6 @@ class JobController extends Controller
 {
     $query = Job::query()->where('status', 'approved');
 
-    // 1. بحث الكلمة المفتاحية (Laravel)
     $query->when($request->keyword, function ($q, $v) {
         $q->where(function ($query) use ($v) {
             $query->where('title', 'like', "%$v%")
@@ -21,12 +20,10 @@ class JobController extends Controller
         });
     });
 
-    // 2. بحث المكان (استخدم like عشان لو كتب Cairo بس يشتغل)
     $query->when($request->location, function ($q, $v) {
         $q->where('location', 'like', "%$v%");
     });
 
-    // 3. فلتر الراتب (تأكد من اسم العمود salary_min كما في ملفك)
     $query->when($request->min_salary, function ($q, $v) {
         $q->where('salary_min', '>=', $v);
     });
