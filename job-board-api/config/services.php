@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'stripe' => [
+        'secret' => env('STRIPE_SECRET'),
+        'key' => env('STRIPE_KEY'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'success_url' => env('STRIPE_SUCCESS_URL'),
+        'cancel_url' => env('STRIPE_CANCEL_URL'),
+        'currency' => env('STRIPE_CURRENCY', 'usd'),
+        'unlock_contact_amount' => env('STRIPE_UNLOCK_CONTACT_AMOUNT', 25),
+        'pay_per_hire_amount' => env('STRIPE_PAY_PER_HIRE_AMOUNT', 100),
+    ],
+
 ];

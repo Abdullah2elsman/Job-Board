@@ -68,6 +68,9 @@ class JobController extends Controller
             return $this->errorResponse('Job not found', 404);
         }
 
+        $job->increment('views_count');
+        $job->loadCount(['applications', 'comments']);
+
         return $this->successResponse($job, 'Job details fetched successfully');
     }
 

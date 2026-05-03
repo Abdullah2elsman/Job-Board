@@ -4,8 +4,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\ApplicationController;
+use App\Http\Controllers\Api\PaymentController;
 
 //public routes
 
@@ -67,5 +70,13 @@ Route::middleware('auth:sanctum')->group(function ()
     {
         Route::get('/jobs/{jobId}/applications', [ApplicationController::class, 'getJobApplications']);
         Route::put('/applications/{id}/status', [ApplicationController::class, 'updateStatus']);
+        Route::post('/payments/checkout', [PaymentController::class, 'checkout']);
+        Route::get('/payments/confirm', [PaymentController::class, 'confirm']);
+        Route::get('/payments/cancel', [PaymentController::class, 'cancel']);
+        Route::get('/analytics', [AnalyticsController::class, 'index']);
     });
+
+    // Comment Routes
+    Route::post('/jobs/{job}/comments', [CommentController::class, 'store']);
+    Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
 });
