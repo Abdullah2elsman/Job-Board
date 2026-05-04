@@ -16,6 +16,7 @@ class Job extends Model
         'description',
         'responsibilities',
         'requirements',
+        'salary',
         'skills',
         'work_type',
         'location',
@@ -24,6 +25,11 @@ class Job extends Model
     ];
 
     public function employer()
+    {
+        return $this->belongsTo(User::class, 'employer_id');
+    }
+
+    public function user()
     {
         return $this->belongsTo(User::class, 'employer_id');
     }
@@ -43,8 +49,8 @@ class Job extends Model
         return $this->hasMany(Comment::class);
     }
 
-    public function user()
+    public function skills()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(JobSkill::class);
     }
 }

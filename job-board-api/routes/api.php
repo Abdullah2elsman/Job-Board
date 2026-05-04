@@ -15,7 +15,7 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Job Routes
 Route::get('/jobs', [JobController::class, 'index']);
-Route::get('/jobs/{job}', [JobController::class, 'show']);
+Route::get('/jobs/{id}', [JobController::class, 'show']);
 
 // Category Routes
 Route::get('/categories', [CategoryController::class, 'index']);
@@ -34,12 +34,19 @@ Route::middleware('auth:sanctum')->group(function ()
         return $request->user();
     });
 
-    // Job Routes for Employer and Admin
-    Route::middleware(['role:employer|admin'])->group(function ()
+    // Job Routes for Employer
+    Route::middleware(['role:employer'])->group(function ()
     {
         Route::post('/jobs', [JobController::class, 'store']);
-        Route::put('/jobs/{job}', [JobController::class, 'update']);
-        Route::delete('/jobs/{job}', [JobController::class, 'destroy']);
+        Route::put('/jobs/{id}', [JobController::class, 'update']);
+        Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
+    });
+
+    // Job Approval Routes for Admin
+    Route::middleware(['role:admin'])->group(function ()
+    {
+        Route::post('/jobs/{id}/approve', [JobController::class, 'approve']);
+        Route::post('/jobs/{id}/reject', [JobController::class, 'reject']);
     });
 
     // Category Routes for Admin
