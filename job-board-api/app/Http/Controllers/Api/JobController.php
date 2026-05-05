@@ -13,27 +13,28 @@ class JobController extends Controller
 {
     public function index(Request $request): JsonResponse
     {
+        return $this->getFilteredJobs($request);
+    }
+
+    public function search(Request $request): JsonResponse
+    {
+        return $this->getFilteredJobs($request);
+    }
+
+    private function getFilteredJobs(Request $request): JsonResponse
+    {
         $query = Job::query()
             ->where('status', 'approved')
-            ->with(['category', 'employer', 'skills']);
+            ->with(['category', 'employer', 'skills'])
+            ->search($request->keyword)
+            ->location($request->location)
+            ->category($request->category_id)
+            ->workType($request->work_type)
+            ->salaryRange($request->min_salary, $request->max_salary)
+            ->experienceLevel($request->experience_level)
+            ->sort($request->sort_by);
 
-        $query->when($request->keyword, function ($q, $v) {
-            $q->where(function ($query) use ($v) {
-                $query->where('title', 'like', "%$v%")
-                    ->orWhere('description', 'like', "%$v%");
-            });
-        });
-
-        $query->when($request->location, function ($q, $v) {
-            $q->where('location', 'like', "%$v%")
-                ->orWhere('work_type', 'like', "%$v%");
-        });
-
-        $query->when($request->min_salary, function ($q, $v) {
-            $q->where('salary', '>=', $v);
-        });
-
-        $jobs = $query->latest()->paginate(10);
+        $jobs = $query->paginate(10);
 
         return $this->successResponse($jobs, 'Approved jobs fetched successfully');
     }
