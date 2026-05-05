@@ -6,9 +6,14 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\AnalyticsController;
+use App\Http\Controllers\Api\CandidateSearchController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\JobController;
 use App\Http\Controllers\Api\ApplicationController;
+use App\Http\Controllers\Api\ApplicationCancelController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\ProfileController;
+use App\Http\Controllers\Api\SavedJobController;
 
 //public routes
 
@@ -18,13 +23,11 @@ Route::post('/login', [AuthController::class, 'login']);
 
 // Job Routes
 Route::get('/jobs', [JobController::class, 'index']);
+Route::get('/jobs/search', [JobController::class, 'search']);
 Route::get('/jobs/{id}', [JobController::class, 'show']);
 
 // Category Routes
 Route::get('/categories', [CategoryController::class, 'index']);
-
-// Search Routes
-Route::get('/jobs/search', [JobController::class, 'search']);
 
 // protected routes
 Route::middleware('auth:sanctum')->group(function ()
@@ -43,6 +46,7 @@ Route::middleware('auth:sanctum')->group(function ()
         Route::post('/jobs', [JobController::class, 'store']);
         Route::put('/jobs/{id}', [JobController::class, 'update']);
         Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
+        Route::put('/employer/profile', [ProfileController::class, 'updateEmployer']);
     });
 
     // Job Approval Routes for Admin
@@ -64,7 +68,13 @@ Route::middleware('auth:sanctum')->group(function ()
     Route::middleware(['role:candidate'])->group(function ()
     {
         Route::post('/jobs/{id}/apply', [ApplicationController::class, 'apply']);
+        Route::delete('/applications/{id}', [ApplicationCancelController::class, 'destroy']);
         Route::get('/my-applications', [ApplicationController::class, 'getMyApplications']);
+        Route::post('/candidate/profile', [ProfileController::class, 'updateCandidate']);
+        
+        // Saved Jobs Routes
+        Route::post('/jobs/{id}/save', [SavedJobController::class, 'toggle']);
+        Route::get('/saved-jobs', [SavedJobController::class, 'index']);
     });
     Route::middleware(['role:employer|admin'])->group(function ()
     {
@@ -74,9 +84,14 @@ Route::middleware('auth:sanctum')->group(function ()
         Route::get('/payments/confirm', [PaymentController::class, 'confirm']);
         Route::get('/payments/cancel', [PaymentController::class, 'cancel']);
         Route::get('/analytics', [AnalyticsController::class, 'index']);
+        Route::get('/candidates/search', [CandidateSearchController::class, 'search']);
     });
 
     // Comment Routes
     Route::post('/jobs/{job}/comments', [CommentController::class, 'store']);
     Route::delete('/comments/{comment}', [CommentController::class, 'destroy']);
+
+    // Notification Routes
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::put('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 });

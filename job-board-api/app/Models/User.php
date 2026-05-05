@@ -23,6 +23,14 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'bio',
+        'location',
+        'skills',
+        'company_name',
+        'company_description',
+        'website',
+        'linkedin_url',
+        'resume_path',
     ];
 
     protected $hidden = [
@@ -42,6 +50,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'skills' => 'array',
         ];
     }
 
@@ -58,5 +67,10 @@ class User extends Authenticatable
     public function comments()
     {
         return $this->hasMany(Comment::class);
+    }
+
+    public function savedJobs()
+    {
+        return $this->belongsToMany(Job::class, 'saved_jobs', 'user_id', 'job_id')->withTimestamps();
     }
 }

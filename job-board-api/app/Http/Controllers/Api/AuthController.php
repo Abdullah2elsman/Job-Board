@@ -17,9 +17,7 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        if (!Auth::attempt($request->only(['email', 'password'])))
-
-        {
+        if (!Auth::attempt($request->only(['email', 'password']))) {
             return response()->json(['message' => 'Invalid login credentials'], 401);
         }
 
@@ -47,9 +45,10 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $request->role,
         ]);
 
-        $user->assignRole($request->role, 'api');
+        $user->assignRole($request->role);
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
