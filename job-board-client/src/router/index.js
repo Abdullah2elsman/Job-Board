@@ -7,6 +7,11 @@ const routes = [
     component: () => import('../views/Home.vue')
   },
   {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/LoginView.vue')
+  },
+  {
     path: '/jobs/:id',
     name: 'JobDetail',
     component: () => import('../views/JobDetail.vue')
@@ -49,7 +54,7 @@ router.beforeEach((to, from, next) => {
   const role = user?.role || null
 
   if (to.meta.requiresAuth && !token) {
-    next({ name: 'Home' }) // Should redirect to login ideally
+    next({ name: 'Login' })
   } else if (to.meta.role && to.meta.role !== role) {
     next({ name: 'Home' })
   } else {
