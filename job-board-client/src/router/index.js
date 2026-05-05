@@ -12,6 +12,11 @@ const routes = [
     component: () => import('../views/LoginView.vue')
   },
   {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/RegisterView.vue')
+  },
+  {
     path: '/jobs/:id',
     name: 'JobDetail',
     component: () => import('../views/JobDetail.vue')
@@ -20,6 +25,12 @@ const routes = [
     path: '/dashboard/employer',
     name: 'EmployerDashboard',
     component: () => import('../components/jobs/EmployerDashboard.vue'),
+    meta: { requiresAuth: true, role: 'employer' }
+  },
+  {
+    path: '/dashboard/employer/profile',
+    name: 'EmployerEditProfile',
+    component: () => import('../views/employer/EditProfile.vue'),
     meta: { requiresAuth: true, role: 'employer' }
   },
   {
@@ -32,6 +43,12 @@ const routes = [
     path: '/dashboard/candidate',
     name: 'CandidateDashboard',
     component: () => import('../views/candidate/MyApplications.vue'),
+    meta: { requiresAuth: true, role: 'candidate' }
+  },
+  {
+    path: '/dashboard/candidate/profile',
+    name: 'CandidateEditProfile',
+    component: () => import('../views/candidate/EditProfile.vue'),
     meta: { requiresAuth: true, role: 'candidate' }
   },
   {

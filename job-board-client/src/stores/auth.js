@@ -41,6 +41,31 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
+    async register(credentials) {
+      this.loading = true
+      this.error = null
+      try {
+        const { data } = await api.post('/api/auth/register', credentials)
+        
+        // Mock role extraction since it's an array or string
+        let roleStr = data.role
+        if (Array.isArray(roleStr)) {
+            roleStr = roleStr[0]
+        }
+        const userWithRole = { ...data.user, role: roleStr }
+
+        this.token = data.access_token
+        this.user = userWithRole
+        localStorage.setItem('token', this.token)
+        localStorage.setItem('user', JSON.stringify(this.user))
+        return true
+      } catch (error) {
+        this.error = error.response?.data?.message || 'Registration failed'
+        return false
+      } finally {
+        this.loading = false
+      }
+    },
     logout() {
       // Opt-in background request
       api.post('/api/logout').catch(() => {})
