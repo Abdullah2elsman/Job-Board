@@ -9,7 +9,15 @@ class Payment extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['employer_id', 'application_id', 'amount', 'transaction_id', 'status'];
+    protected $fillable = [
+        'employer_id',
+        'application_id',
+        'amount',
+        'currency',
+        'payment_method',
+        'transaction_id',
+        'status',
+    ];
 
     public function employer()
     {

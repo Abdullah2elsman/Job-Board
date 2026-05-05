@@ -36,6 +36,20 @@ export const useJobsStore = defineStore("jobs", {
         this.loading = false;
       }
     },
+    async fetchJobs(filters = {}) {
+      this.loading = true;
+      this.error = null;
+      try {
+        const { data } = await api.get("/api/jobs/search", { params: filters });
+        const payload = data?.data || data;
+        this.jobs = payload?.data || payload || [];
+        this.pagination = payload?.meta || null;
+      } catch (error) {
+        this.error = error?.response?.data?.message || "Failed to load jobs";
+      } finally {
+        this.loading = false;
+      }
+    },
     async createJob(payload) {
       this.loading = true;
       this.error = null;

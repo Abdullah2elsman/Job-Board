@@ -150,6 +150,7 @@ onMounted(async () => {
         </div>
 
         <div v-if="editingId !== job.id" class="job-card__actions">
+          <router-link :to="`/dashboard/employer/jobs/${job.id}/applications`" class="btn btn--ghost">View Applications</router-link>
           <button class="btn btn--ghost" type="button" @click="startEdit(job)">
             Edit
           </button>
