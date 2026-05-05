@@ -40,6 +40,12 @@ const routes = [
     meta: { requiresAuth: true, role: 'employer' }
   },
   {
+    path: '/dashboard/employer/search',
+    name: 'SearchCandidates',
+    component: () => import('../views/employer/SearchCandidates.vue'),
+    meta: { requiresAuth: true, role: 'employer' }
+  },
+  {
     path: '/dashboard/candidate',
     name: 'CandidateDashboard',
     component: () => import('../views/candidate/MyApplications.vue'),
@@ -49,6 +55,12 @@ const routes = [
     path: '/dashboard/candidate/profile',
     name: 'CandidateEditProfile',
     component: () => import('../views/candidate/EditProfile.vue'),
+    meta: { requiresAuth: true, role: 'candidate' }
+  },
+  {
+    path: '/dashboard/candidate/saved-jobs',
+    name: 'CandidateSavedJobs',
+    component: () => import('../views/candidate/SavedJobs.vue'),
     meta: { requiresAuth: true, role: 'candidate' }
   },
   {

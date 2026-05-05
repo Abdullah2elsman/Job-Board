@@ -21,7 +21,6 @@ const fetchAnalytics = async () => {
 const updateJobStatus = async (jobId, action) => {
   try {
     await api.post(`/api/jobs/${jobId}/${action}`)
-    // Refresh analytics to get updated lists
     fetchAnalytics()
   } catch (err) {
     alert(err.response?.data?.message || `Failed to ${action} job`)
@@ -34,71 +33,74 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="grid" style="grid-template-columns: 1fr;">
-    <section class="card">
-      <header class="card__header">
-        <h2>Admin Dashboard</h2>
-        <button class="btn btn--ghost" @click="fetchAnalytics" :disabled="loading">
-          {{ loading ? 'Refreshing...' : 'Refresh' }}
-        </button>
-      </header>
+  <div class="layout" style="gap: 2rem;">
+    <header class="flex-between">
+      <div>
+        <h1 style="margin: 0;">Admin Overview</h1>
+        <p class="muted">Monitor platform activity and manage job approvals</p>
+      </div>
+      <button class="btn btn--ghost" @click="fetchAnalytics" :disabled="loading">
+        {{ loading ? 'Updating...' : 'Refresh Data' }}
+      </button>
+    </header>
 
-      <div v-if="loading" class="loading">Loading dashboard...</div>
-      <div v-else-if="error" class="alert alert--error">{{ error }}</div>
-      
-      <template v-else-if="analyticsData">
-        <div class="grid" style="grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;">
-          <div class="card text-center" style="padding: 1.5rem;">
-            <h3>{{ analyticsData.totals.jobs }}</h3>
-            <p class="muted">Total Jobs</p>
-          </div>
-          <div class="card text-center" style="padding: 1.5rem;">
-            <h3>{{ analyticsData.totals.applications }}</h3>
-            <p class="muted">Total Applications</p>
-          </div>
-          <div class="card text-center" style="padding: 1.5rem;">
-            <h3>{{ analyticsData.totals.job_views }}</h3>
-            <p class="muted">Total Job Views</p>
-          </div>
-          <div class="card text-center" style="padding: 1.5rem;">
-            <h3>{{ analyticsData.totals.payments }}</h3>
-            <p class="muted">Total Payments</p>
-          </div>
+    <div v-if="loading" class="loading">Loading platform metrics...</div>
+    <div v-else-if="error" class="alert alert--error">{{ error }}</div>
+    
+    <template v-else-if="analyticsData">
+      <!-- Stats Grid -->
+      <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+        <div class="card text-center" style="padding: 2rem;">
+          <h2 style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;">{{ analyticsData.totals.jobs }}</h2>
+          <p class="muted" style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;">Total Jobs</p>
         </div>
-
-        <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
-          <h3 style="margin-bottom: 1rem;">Platform Analytics</h3>
-          <AnalyticsChart :data="analyticsData" />
+        <div class="card text-center" style="padding: 2rem;">
+          <h2 style="font-size: 2.5rem; color: var(--success); margin-bottom: 0.5rem;">{{ analyticsData.totals.applications }}</h2>
+          <p class="muted" style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;">Applications</p>
         </div>
+        <div class="card text-center" style="padding: 2rem;">
+          <h2 style="font-size: 2.5rem; color: var(--warning); margin-bottom: 0.5rem;">{{ analyticsData.totals.job_views }}</h2>
+          <p class="muted" style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;">Job Views</p>
+        </div>
+        <div class="card text-center" style="padding: 2rem;">
+          <h2 style="font-size: 2.5rem; color: var(--text-primary); margin-bottom: 0.5rem;">{{ analyticsData.totals.payments }}</h2>
+          <p class="muted" style="text-transform: uppercase; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em;">Revenue</p>
+        </div>
+      </div>
 
-        <div>
-          <h3>Pending Job Approvals</h3>
-          <div class="job-list" style="margin-top: 1rem;">
-            <article 
-              v-for="job in analyticsData.jobs.filter(j => j.status === 'pending')" 
-              :key="job.id" 
-              class="job-card"
-            >
-              <div class="job-card__header">
-                <div>
-                  <h4>{{ job.title }}</h4>
-                  <p class="muted">{{ job.category }} • {{ job.location }}</p>
-                </div>
-                <span class="badge badge--warning">PENDING</span>
+      <div class="card" style="padding: 2.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Activity Trends</h3>
+        <AnalyticsChart :data="analyticsData" />
+      </div>
+
+      <section>
+        <h3 style="margin-bottom: 1.5rem;">Pending Approvals</h3>
+        <div class="job-list">
+          <article 
+            v-for="job in analyticsData.jobs.filter(j => j.status === 'pending')" 
+            :key="job.id" 
+            class="job-card"
+            style="background: #ffffff;"
+          >
+            <div class="job-card__header">
+              <div>
+                <h4 style="font-size: 1.15rem; margin-bottom: 0.25rem;">{{ job.title }}</h4>
+                <p class="muted" style="font-size: 0.9rem;">{{ job.category }} • {{ job.location }}</p>
               </div>
-              <div style="margin-top: 1rem; display: flex; gap: 0.5rem;">
-                <router-link :to="`/jobs/${job.id}`" class="btn btn--ghost">View Job</router-link>
-                <button class="btn btn--success" style="background-color: var(--success); margin-left: auto;" @click="updateJobStatus(job.id, 'approve')">Approve</button>
-                <button class="btn btn--danger" @click="updateJobStatus(job.id, 'reject')">Reject</button>
-              </div>
-            </article>
+              <span class="badge badge--warning">REVIEW REQUIRED</span>
+            </div>
+            <div class="flex-wrap" style="margin-top: 1.5rem; justify-content: flex-end;">
+              <router-link :to="`/jobs/${job.id}`" class="btn btn--ghost" style="font-size: 0.85rem;">View Details</router-link>
+              <button class="btn" style="background: var(--success); font-size: 0.85rem;" @click="updateJobStatus(job.id, 'approve')">Approve Job</button>
+              <button class="btn btn--danger" style="font-size: 0.85rem;" @click="updateJobStatus(job.id, 'reject')">Reject</button>
+            </div>
+          </article>
 
-            <p v-if="!analyticsData.jobs.some(j => j.status === 'pending')" class="muted text-center" style="padding: 1rem;">
-              No pending jobs to review.
-            </p>
+          <div v-if="!analyticsData.jobs.some(j => j.status === 'pending')" class="card text-center" style="padding: 3rem; background: var(--bg-secondary); border: 1.5px dashed var(--border-color);">
+            <p class="muted">All caught up! No pending jobs to review.</p>
           </div>
         </div>
-      </template>
-    </section>
+      </section>
+    </template>
   </div>
 </template>

@@ -45,7 +45,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = null
       try {
-        const { data } = await api.post('/api/auth/register', credentials)
+        const { data } = await api.post('/api/register', credentials)
         
         // Mock role extraction since it's an array or string
         let roleStr = data.role

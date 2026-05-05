@@ -26,8 +26,6 @@ const validateForm = () => {
   
   if (!form.password) {
     errors.password = 'Password is required'
-  } else if (form.password.length < 6) {
-    errors.password = 'Password must be at least 6 characters'
   }
   
   return Object.keys(errors).length === 0
@@ -35,18 +33,13 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   authStore.error = null
-  
-  if (!validateForm()) {
-    return
-  }
+  if (!validateForm()) return
   
   isLoading.value = true
-  
   const success = await authStore.login({
     email: form.email,
     password: form.password
   })
-  
   isLoading.value = false
   
   if (success) {
@@ -60,36 +53,34 @@ const handleSubmit = async () => {
     }
   }
 }
-
-const togglePasswordVisibility = () => {
-  showPassword.value = !showPassword.value
-}
 </script>
 
 <template>
-  <div class="layout">
-    <section class="card" style="max-width: 400px; margin: 2rem auto; width: 100%;">
-      <header class="card__header">
-        <h2>Login</h2>
+  <div style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 200px); padding: 2rem 1rem;">
+    <section class="card" style="max-width: 440px; width: 100%; padding: 2.5rem;">
+      <header style="text-align: center; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.75rem; margin-bottom: 0.5rem;">Welcome Back</h2>
+        <p class="muted">Enter your credentials to access your account</p>
       </header>
 
-      <div v-if="authStore.error" class="alert alert--error">
+      <div v-if="authStore.error" class="alert alert--error" style="margin-bottom: 1.5rem;">
         {{ authStore.error }}
       </div>
 
       <form @submit.prevent="handleSubmit" class="form">
-        <div class="form__field form__field--full">
-          <label>Email</label>
+        <div class="form__field">
+          <label>Email Address</label>
           <input
             v-model="form.email"
             type="email"
-            placeholder="you@example.com"
+            placeholder="name@company.com"
             :disabled="isLoading"
+            required
           />
           <span v-if="errors.email" class="form__error">{{ errors.email }}</span>
         </div>
 
-        <div class="form__field form__field--full">
+        <div class="form__field">
           <label>Password</label>
           <div style="position: relative;">
             <input
@@ -97,43 +88,37 @@ const togglePasswordVisibility = () => {
               :type="showPassword ? 'text' : 'password'"
               placeholder="••••••••"
               :disabled="isLoading"
+              style="padding-right: 3rem;"
+              required
             />
             <button
               type="button"
-              @click="togglePasswordVisibility"
-              :disabled="isLoading"
-              style="
-                position: absolute;
-                right: 0.75rem;
-                top: 50%;
-                transform: translateY(-50%);
-                background: none;
-                border: none;
-                cursor: pointer;
-                color: #64748b;
-                font-size: 0.95rem;
-              "
+              @click="showPassword = !showPassword"
+              style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--text-muted);"
             >
-              {{ showPassword ? '✕' : '●' }}
+              <span v-if="showPassword">🙈</span>
+              <span v-else>👁️</span>
             </button>
           </div>
           <span v-if="errors.password" class="form__error">{{ errors.password }}</span>
         </div>
 
-        <div class="form__actions" style="justify-content: flex-end;">
-          <button
-            type="submit"
-            class="btn"
-            :disabled="isLoading"
-          >
-            {{ isLoading ? 'Logging in...' : 'Login' }}
-          </button>
-        </div>
+        <button
+          type="submit"
+          class="btn"
+          style="width: 100%; margin-top: 1rem; padding: 0.9rem;"
+          :disabled="isLoading"
+        >
+          {{ isLoading ? 'Signing in...' : 'Sign In' }}
+        </button>
       </form>
 
-      <p class="muted" style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
-        Don't have an account? <router-link to="/" style="color: #2563eb; text-decoration: none;">Sign up</router-link>
-      </p>
+      <div style="text-align: center; margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+        <p class="muted">
+          Don't have an account? 
+          <router-link to="/register" style="color: var(--primary); font-weight: 600; text-decoration: none;">Create Account</router-link>
+        </p>
+      </div>
     </section>
   </div>
 </template>

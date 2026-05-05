@@ -22,6 +22,9 @@ const comments = ref([])
 const newComment = ref('')
 const commentLoading = ref(false)
 
+const isSaved = ref(false)
+const saveLoading = ref(false)
+
 const isCandidate = computed(() => authStore.isCandidate)
 const isAdmin = computed(() => authStore.isAdmin)
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -31,10 +34,28 @@ const fetchJob = async () => {
     const { data } = await api.get(`/api/jobs/${route.params.id}`)
     job.value = data?.data || data
     comments.value = job.value?.comments || []
+    
+    if (isCandidate.value) {
+      const savedRes = await api.get('/api/saved-jobs')
+      const savedJobs = savedRes.data?.data || []
+      isSaved.value = savedJobs.some(sj => sj.id === job.value.id)
+    }
   } catch (err) {
     error.value = 'Failed to load job details'
   } finally {
     loading.value = false
+  }
+}
+
+const toggleSaveJob = async () => {
+  saveLoading.value = true
+  try {
+    const { data } = await api.post(`/api/jobs/${job.value.id}/save`)
+    isSaved.value = data.status === 'added'
+  } catch (err) {
+    alert(err.response?.data?.message || 'Failed to save job')
+  } finally {
+    saveLoading.value = false
   }
 }
 
@@ -101,113 +122,143 @@ onMounted(() => {
 <template>
   <div v-if="loading" class="loading">Loading job details...</div>
   <div v-else-if="error" class="alert alert--error">{{ error }}</div>
-  <div v-else-if="job" class="grid" style="grid-template-columns: 2fr 1fr; align-items: start;">
+  <div v-else-if="job" class="sidebar-layout">
     
-    <article class="card">
-      <header class="card__header" style="flex-direction: column; align-items: flex-start; gap: 1rem;">
-        <div>
-          <h2>{{ job.title }}</h2>
-          <p class="muted">
-            <span v-if="job.employer?.name">Company: {{ job.employer.name }}</span>
-          </p>
-        </div>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-          <span class="badge badge--success">${{ job.salary || 'N/A' }}</span>
-          <span class="badge">{{ job.work_type }}</span>
-          <span class="badge">{{ job.location }}</span>
-        </div>
-      </header>
+    <div class="layout" style="gap: 2rem;">
+      <article class="card" style="padding: 2.5rem;">
+        <header class="flex-between" style="margin-bottom: 2rem; align-items: flex-start;">
+          <div style="flex: 1;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+              <h1 style="font-size: 2.25rem; margin: 0;">{{ job.title }}</h1>
+              <span class="badge badge--success">${{ job.salary || 'N/A' }}</span>
+            </div>
+            <p class="muted" style="font-size: 1.1rem;">
+              <span v-if="job.employer?.name" style="font-weight: 600; color: var(--text-primary);">{{ job.employer.name }}</span>
+              <span v-if="job.employer?.name"> • </span>
+              {{ job.location }} • {{ job.work_type }}
+            </p>
+          </div>
+          <button v-if="isCandidate" @click="toggleSaveJob" class="btn btn--ghost" :disabled="saveLoading" style="padding: 0.6rem 1rem;">
+            <span v-if="isSaved">★ Saved</span>
+            <span v-else>☆ Save</span>
+          </button>
+        </header>
 
-      <div style="margin-top: 2rem;">
-        <h3>Description</h3>
-        <p style="white-space: pre-wrap;">{{ job.description }}</p>
-      </div>
-
-      <div v-if="job.responsibilities" style="margin-top: 2rem;">
-        <h3>Responsibilities</h3>
-        <p style="white-space: pre-wrap;">{{ job.responsibilities }}</p>
-      </div>
-
-      <div v-if="job.requirements" style="margin-top: 2rem;">
-        <h3>Requirements</h3>
-        <p style="white-space: pre-wrap;">{{ job.requirements }}</p>
-      </div>
-
-      <div style="margin-top: 2rem;">
-        <h3>Skills</h3>
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 2.5rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color);">
+          <span class="badge">{{ job.category?.name || 'Uncategorized' }}</span>
+          <span class="badge">{{ job.experience_level || 'Any Experience' }}</span>
           <span v-for="skill in job.skills" :key="skill.id" class="chip">
             {{ skill.skill_name }}
           </span>
         </div>
-      </div>
 
-      <div style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--border);">
-        <h3>Discussion ({{ comments.length }})</h3>
+        <section style="margin-bottom: 2.5rem;">
+          <h3 style="margin-bottom: 1rem; font-size: 1.4rem;">About this role</h3>
+          <p style="white-space: pre-wrap; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.8;">{{ job.description }}</p>
+        </section>
+
+        <section v-if="job.responsibilities" style="margin-bottom: 2.5rem;">
+          <h3 style="margin-bottom: 1rem; font-size: 1.4rem;">What you'll do</h3>
+          <p style="white-space: pre-wrap; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.8;">{{ job.responsibilities }}</p>
+        </section>
+
+        <section v-if="job.requirements" style="margin-bottom: 2.5rem;">
+          <h3 style="margin-bottom: 1rem; font-size: 1.4rem;">Requirements</h3>
+          <p style="white-space: pre-wrap; color: var(--text-secondary); font-size: 1.05rem; line-height: 1.8;">{{ job.requirements }}</p>
+        </section>
+      </article>
+
+      <!-- Discussion Section -->
+      <section class="card" style="padding: 2.5rem;">
+        <h3 style="margin-bottom: 1.5rem; font-size: 1.4rem;">Discussion ({{ comments.length }})</h3>
         
-        <form v-if="isAuthenticated" @submit.prevent="postComment" class="form" style="margin-top: 1rem; margin-bottom: 2rem;">
+        <form v-if="isAuthenticated" @submit.prevent="postComment" class="form" style="margin-bottom: 2.5rem;">
           <div class="form__field">
-            <textarea v-model="newComment" rows="3" placeholder="Add a comment..." required></textarea>
+            <textarea v-model="newComment" rows="3" placeholder="Ask a question or share your thoughts..." required></textarea>
           </div>
-          <button type="submit" class="btn" :disabled="commentLoading">
-            {{ commentLoading ? 'Posting...' : 'Post Comment' }}
-          </button>
+          <div style="display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn" :disabled="commentLoading">
+              {{ commentLoading ? 'Posting...' : 'Post Comment' }}
+            </button>
+          </div>
         </form>
-        <div v-else class="alert alert--warning" style="margin-top: 1rem; margin-bottom: 2rem;">
+        <div v-else class="alert alert--warning" style="margin-bottom: 2.5rem;">
           Please log in to participate in the discussion.
         </div>
 
-        <div class="comments-list">
-          <div v-for="comment in comments" :key="comment.id" class="card" style="padding: 1rem; margin-bottom: 1rem; background: var(--bg-body);">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div>
-                <strong>{{ comment.user?.name || 'User' }}</strong>
-                <span class="muted" style="margin-left: 0.5rem; font-size: 0.85em;">{{ new Date(comment.created_at).toLocaleDateString() }}</span>
+        <div class="layout" style="gap: 1.25rem;">
+          <div v-for="comment in comments" :key="comment.id" class="job-card" style="padding: 1.25rem; background: var(--bg-secondary); border: none;">
+            <div class="flex-between" style="margin-bottom: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">
+                  {{ (comment.user?.name || 'U').charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <h4 style="margin: 0; font-size: 0.95rem;">{{ comment.user?.name || 'User' }}</h4>
+                  <span class="muted" style="font-size: 0.8rem;">{{ new Date(comment.created_at).toLocaleDateString() }}</span>
+                </div>
               </div>
               <button 
                 v-if="isAdmin || (authStore.user?.id === comment.user_id)" 
                 @click="deleteComment(comment.id)"
                 class="btn btn--danger" 
-                style="padding: 0.25rem 0.5rem; font-size: 0.8em;"
+                style="padding: 0.4rem 0.8rem; font-size: 0.75rem;"
               >
                 Delete
               </button>
             </div>
-            <p style="margin-top: 0.5rem; white-space: pre-wrap;">{{ comment.content }}</p>
+            <p style="margin: 0; white-space: pre-wrap; font-size: 0.95rem; color: var(--text-secondary);">{{ comment.content }}</p>
           </div>
-          <p v-if="!comments.length" class="muted text-center">No comments yet. Be the first to start the discussion!</p>
+          <p v-if="!comments.length" class="muted text-center" style="padding: 2rem;">No comments yet. Be the first to start the discussion!</p>
         </div>
-      </div>
-    </article>
+      </section>
+    </div>
 
-    <aside class="card" style="position: sticky; top: 1rem;">
-      <header class="card__header">
-        <h3>Apply Now</h3>
-      </header>
+    <!-- Sticky Sidebar -->
+    <aside style="display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="card" style="padding: 2rem; position: sticky; top: 6rem;">
+        <h3 style="margin-bottom: 1.25rem;">Apply Now</h3>
+        
+        <div v-if="!isAuthenticated" class="layout" style="gap: 1rem;">
+          <p class="muted">You need to be logged in as a candidate to apply for this job.</p>
+          <router-link to="/login" class="btn" style="width: 100%;">Sign In</router-link>
+        </div>
 
-      <div v-if="!isCandidate" class="alert alert--warning">
-        Please log in as a candidate to apply for this job.
-      </div>
-      
-      <div v-else-if="applySuccess" class="alert alert--success">
-        Your application has been submitted successfully!
-      </div>
-      
-      <form v-else @submit.prevent="submitApplication" class="form">
-        <div class="form__field">
-          <label>Resume (PDF)</label>
-          <input type="file" accept=".pdf" @change="handleFileUpload" required />
+        <div v-else-if="!isCandidate" class="alert alert--warning">
+          Please log in as a candidate to apply for this job.
         </div>
         
-        <div class="form__field">
-          <label>Cover Letter (Optional)</label>
-          <textarea v-model="applyForm.cover_letter" rows="4"></textarea>
+        <div v-else-if="applySuccess" class="alert alert--success">
+          <p style="margin: 0;">Application submitted! We've notified the employer.</p>
         </div>
+        
+        <form v-else @submit.prevent="submitApplication" class="form">
+          <div class="form__field">
+            <label>Upload Resume (PDF)</label>
+            <input type="file" accept=".pdf" @change="handleFileUpload" required />
+          </div>
+          
+          <div class="form__field">
+            <label>Cover Letter</label>
+            <textarea v-model="applyForm.cover_letter" rows="5" placeholder="Why are you a good fit?"></textarea>
+          </div>
 
-        <button type="submit" class="btn" :disabled="applyLoading" style="width: 100%;">
-          {{ applyLoading ? 'Submitting...' : 'Submit Application' }}
-        </button>
-      </form>
+          <button type="submit" class="btn" :disabled="applyLoading" style="width: 100%; padding: 0.9rem;">
+            {{ applyLoading ? 'Submitting...' : 'Submit Application' }}
+          </button>
+        </form>
+
+        <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+          <div class="flex-between" style="margin-bottom: 1rem;">
+            <span class="muted">Applications</span>
+            <span style="font-weight: 600;">{{ job.applications_count || 0 }}</span>
+          </div>
+          <div class="flex-between">
+            <span class="muted">Views</span>
+            <span style="font-weight: 600;">{{ job.views_count || 0 }}</span>
+          </div>
+        </div>
+      </div>
     </aside>
 
   </div>

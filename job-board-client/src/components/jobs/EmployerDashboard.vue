@@ -112,11 +112,11 @@ onMounted(async () => {
 </script>
 
 <template>
-  <section class="card">
-    <header class="card__header">
+  <div class="layout" style="gap: 2rem;">
+    <header class="flex-between">
       <div>
-        <h2>Employer Dashboard</h2>
-        <p class="muted">Track your posted jobs and their approval status.</p>
+        <h1 style="margin: 0;">My Jobs</h1>
+        <p class="muted">Manage your listings and track candidate applications</p>
       </div>
       <button
         class="btn btn--ghost"
@@ -124,7 +124,7 @@ onMounted(async () => {
         @click="jobsStore.fetchEmployerJobs"
         :disabled="isLoading"
       >
-        {{ isLoading ? "Refreshing..." : "Refresh" }}
+        {{ isLoading ? "Refreshing..." : "Refresh List" }}
       </button>
     </header>
 
@@ -135,83 +135,73 @@ onMounted(async () => {
       {{ jobsStore.successMessage }}
     </div>
 
-    <div v-if="isLoading" class="loading">Loading jobs...</div>
+    <div v-if="isLoading" class="loading">Loading your listings...</div>
 
     <div v-else class="job-list">
-      <article v-for="job in jobsStore.jobs" :key="job.id" class="job-card">
-        <div class="job-card__header">
-          <div>
-            <h3>{{ job.title }}</h3>
-            <p class="muted">
-              Created: {{ new Date(job.created_at).toLocaleDateString() }}
-            </p>
+      <article v-for="job in jobsStore.jobs" :key="job.id" class="card" style="padding: 1.75rem;">
+        <div v-if="editingId !== job.id">
+          <div class="job-card__header" style="margin-bottom: 1.5rem;">
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
+                <h3 style="margin: 0;">{{ job.title }}</h3>
+                <span :class="statusClass(job.status)" style="font-size: 0.7rem;">{{ job.status.toUpperCase() }}</span>
+              </div>
+              <p class="muted" style="font-size: 0.9rem;">
+                Posted on {{ new Date(job.created_at).toLocaleDateString() }} • {{ job.location }} • {{ job.work_type }}
+              </p>
+            </div>
+            <div class="flex-wrap" style="justify-content: flex-end; gap: 0.75rem;">
+              <router-link :to="`/dashboard/employer/jobs/${job.id}/applications`" class="btn btn--ghost" style="font-size: 0.85rem;">
+                Applications ({{ job.applications_count || 0 }})
+              </router-link>
+              <button class="btn btn--ghost" style="font-size: 0.85rem;" @click="startEdit(job)">Edit</button>
+              <button class="btn btn--danger" style="font-size: 0.85rem; padding: 0.6rem 1rem;" @click="removeJob(job.id)">Delete</button>
+            </div>
           </div>
-          <span :class="statusClass(job.status)">{{ job.status }}</span>
+
+          <div class="flex-wrap" style="gap: 0.5rem; margin-top: 1rem;">
+            <span v-for="skill in job.skills" :key="skill.id" class="chip" style="font-size: 0.75rem;">
+              {{ skill.skill_name }}
+            </span>
+          </div>
         </div>
 
-        <div v-if="editingId !== job.id" class="job-card__actions">
-          <router-link :to="`/dashboard/employer/jobs/${job.id}/applications`" class="btn btn--ghost">View Applications</router-link>
-          <button class="btn btn--ghost" type="button" @click="startEdit(job)">
-            Edit
-          </button>
-          <button
-            class="btn btn--danger"
-            type="button"
-            @click="removeJob(job.id)"
-          >
-            Delete
-          </button>
-        </div>
-
+        <!-- Edit Form -->
         <form v-else class="form" @submit.prevent="submitEdit(job.id)">
-          <div class="form__grid">
+          <div class="form__grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
             <div class="form__field">
-              <label>Title</label>
+              <label>Job Title</label>
               <input v-model="editForm.title" type="text" />
-              <span v-if="errors.title" class="form__error">{{
-                errors.title
-              }}</span>
+              <span v-if="errors.title" class="form__error">{{ errors.title }}</span>
             </div>
 
             <div class="form__field">
               <label>Category</label>
               <select v-model="editForm.category_id">
                 <option value="" disabled>Select category</option>
-                <option
-                  v-for="category in jobsStore.categories"
-                  :key="category.id"
-                  :value="category.id"
-                >
+                <option v-for="category in jobsStore.categories" :key="category.id" :value="category.id">
                   {{ category.name }}
                 </option>
               </select>
-              <span v-if="errors.category_id" class="form__error">{{
-                errors.category_id
-              }}</span>
+              <span v-if="errors.category_id" class="form__error">{{ errors.category_id }}</span>
             </div>
 
             <div class="form__field form__field--full">
               <label>Description</label>
-              <textarea v-model="editForm.description" rows="3"></textarea>
-              <span v-if="errors.description" class="form__error">{{
-                errors.description
-              }}</span>
+              <textarea v-model="editForm.description" rows="4"></textarea>
+              <span v-if="errors.description" class="form__error">{{ errors.description }}</span>
             </div>
 
             <div class="form__field">
-              <label>Salary</label>
-              <input v-model="editForm.salary" type="text" />
-              <span v-if="errors.salary" class="form__error">{{
-                errors.salary
-              }}</span>
+              <label>Salary (Annual)</label>
+              <input v-model="editForm.salary" type="text" placeholder="e.g. 80000" />
+              <span v-if="errors.salary" class="form__error">{{ errors.salary }}</span>
             </div>
 
             <div class="form__field">
               <label>Location</label>
-              <input v-model="editForm.location" type="text" />
-              <span v-if="errors.location" class="form__error">{{
-                errors.location
-              }}</span>
+              <input v-model="editForm.location" type="text" placeholder="City, State" />
+              <span v-if="errors.location" class="form__error">{{ errors.location }}</span>
             </div>
 
             <div class="form__field">
@@ -221,9 +211,6 @@ onMounted(async () => {
                 <option value="onsite">Onsite</option>
                 <option value="hybrid">Hybrid</option>
               </select>
-              <span v-if="errors.work_type" class="form__error">{{
-                errors.work_type
-              }}</span>
             </div>
 
             <div class="form__field">
@@ -232,51 +219,35 @@ onMounted(async () => {
             </div>
 
             <div class="form__field form__field--full">
-              <label>Skills</label>
+              <label>Required Skills (Press Enter to add)</label>
               <div class="skills">
                 <div class="skills__input">
-                  <input
-                    v-model="skillInput"
-                    type="text"
-                    placeholder="Add skill"
-                    @keydown.enter.prevent="addSkill"
-                  />
-                  <button
-                    type="button"
-                    class="btn btn--ghost"
-                    @click="addSkill"
-                  >
-                    Add
-                  </button>
+                  <input v-model="skillInput" type="text" placeholder="Add a skill..." @keydown.enter.prevent="addSkill" />
+                  <button type="button" class="btn btn--ghost" @click="addSkill">Add</button>
                 </div>
-                <div class="skills__list">
-                  <span
-                    v-for="skill in editForm.skills"
-                    :key="skill"
-                    class="chip"
-                  >
+                <div class="skills__list" style="margin-top: 0.75rem;">
+                  <span v-for="skill in editForm.skills" :key="skill" class="chip">
                     {{ skill }}
-                    <button type="button" @click="removeSkill(skill)">×</button>
+                    <button type="button" @click="removeSkill(skill)" style="border: none; background: none; cursor: pointer; color: var(--danger); margin-left: 0.25rem;">×</button>
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="form__actions">
-            <button class="btn btn--ghost" type="button" @click="cancelEdit">
-              Cancel
-            </button>
+          <div class="form__actions" style="margin-top: 2rem;">
+            <button class="btn btn--ghost" type="button" @click="cancelEdit">Cancel</button>
             <button class="btn" type="submit" :disabled="isLoading">
-              {{ isLoading ? "Saving..." : "Save Changes" }}
+              {{ isLoading ? "Saving..." : "Update Listing" }}
             </button>
           </div>
         </form>
       </article>
 
-      <p v-if="!jobsStore.jobs.length" class="muted">
-        No jobs yet. Create your first job.
-      </p>
+      <div v-if="!jobsStore.jobs.length" class="card text-center" style="padding: 4rem 2rem;">
+        <h3 class="muted">You haven't posted any jobs yet.</h3>
+        <p class="muted">Start hiring by creating your first job listing.</p>
+      </div>
     </div>
-  </section>
+  </div>
 </template>
