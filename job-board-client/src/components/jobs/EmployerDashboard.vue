@@ -1,8 +1,16 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from "vue";
+import api from "../../services/api";
 import { useJobsStore } from "../../stores/jobs";
 
 const jobsStore = useJobsStore();
+
+const activeTab = ref("overview");
+const analytics = reactive({
+  loading: false,
+  data: null,
+  error: null,
+});
 
 const editingId = ref(null);
 const editForm = reactive({
@@ -16,8 +24,23 @@ const editForm = reactive({
   skills: [],
 });
 
+const createForm = reactive({
+  title: "",
+  description: "",
+  responsibilities: "",
+  requirements: "",
+  category_id: "",
+  salary: "",
+  location: "",
+  work_type: "remote",
+  deadline: "",
+  skills: [],
+});
+
 const errors = reactive({});
+const createErrors = reactive({});
 const skillInput = ref("");
+const createSkillInput = ref("");
 const isLoading = computed(() => jobsStore.loading);
 
 const startEdit = (job) => {
@@ -54,23 +77,36 @@ const removeSkill = (skill) => {
   editForm.skills = editForm.skills.filter((item) => item !== skill);
 };
 
-const validate = () => {
-  Object.keys(errors).forEach((key) => delete errors[key]);
-  if (!editForm.title || editForm.title.length < 3)
-    errors.title = "Title is required (min 3)";
-  if (!editForm.description || editForm.description.length < 10)
-    errors.description = "Description is required (min 10)";
-  if (!editForm.category_id) errors.category_id = "Category is required";
-  if (!editForm.location) errors.location = "Location is required";
-  if (!editForm.work_type) errors.work_type = "Work type is required";
-  if (editForm.salary && Number.isNaN(Number(editForm.salary)))
-    errors.salary = "Salary must be a number";
-  return Object.keys(errors).length === 0;
+const addCreateSkill = () => {
+  const value = createSkillInput.value.trim();
+  if (!value) return;
+  if (!createForm.skills.includes(value)) {
+    createForm.skills.push(value);
+  }
+  createSkillInput.value = "";
+};
+
+const removeCreateSkill = (skill) => {
+  createForm.skills = createForm.skills.filter((item) => item !== skill);
+};
+
+const validate = (form, errorObj) => {
+  Object.keys(errorObj).forEach((key) => delete errorObj[key]);
+  if (!form.title || form.title.length < 3)
+    errorObj.title = "Title is required (min 3)";
+  if (!form.description || form.description.length < 10)
+    errorObj.description = "Description is required (min 10)";
+  if (!form.category_id) errorObj.category_id = "Category is required";
+  if (!form.location) errorObj.location = "Location is required";
+  if (!form.work_type) errorObj.work_type = "Work type is required";
+  if (form.salary && Number.isNaN(Number(form.salary)))
+    errorObj.salary = "Salary must be a number";
+  return Object.keys(errorObj).length === 0;
 };
 
 const submitEdit = async (jobId) => {
   jobsStore.clearMessages();
-  if (!validate()) return;
+  if (!validate(editForm, errors)) return;
 
   const payload = {
     ...editForm,
@@ -91,6 +127,36 @@ const submitEdit = async (jobId) => {
   }
 };
 
+const submitCreate = async () => {
+  jobsStore.clearMessages();
+  if (!validate(createForm, createErrors)) return;
+
+  const payload = {
+    ...createForm,
+    salary: createForm.salary === "" ? null : Number(createForm.salary),
+    skills: createForm.skills,
+  };
+
+  try {
+    await jobsStore.createJob(payload);
+    // Reset form
+    Object.keys(createForm).forEach((key) => {
+      if (key === "skills") createForm[key] = [];
+      else if (key === "work_type") createForm[key] = "remote";
+      else createForm[key] = "";
+    });
+    createSkillInput.value = "";
+    activeTab.value = "jobs";
+  } catch (error) {
+    const apiErrors = error?.response?.data?.errors || null;
+    if (apiErrors) {
+      Object.entries(apiErrors).forEach(([key, value]) => {
+        createErrors[key] = Array.isArray(value) ? value[0] : value;
+      });
+    }
+  }
+};
+
 const removeJob = async (jobId) => {
   if (!window.confirm("Are you sure you want to delete this job?")) return;
   jobsStore.clearMessages();
@@ -103,105 +169,389 @@ const statusClass = (status) => {
   return "badge badge--warning";
 };
 
+const fetchAnalytics = async () => {
+  analytics.loading = true;
+  analytics.error = null;
+  try {
+    const { data } = await api.get("/api/analytics");
+    analytics.data = data.data;
+  } catch (error) {
+    analytics.error =
+      error?.response?.data?.message || "Failed to load analytics";
+  } finally {
+    analytics.loading = false;
+  }
+};
+
 onMounted(async () => {
   if (!jobsStore.categories.length) {
     await jobsStore.fetchCategories();
   }
   await jobsStore.fetchEmployerJobs();
+  await fetchAnalytics();
 });
 </script>
 
 <template>
-  <div class="layout" style="gap: 2rem;">
+  <div class="layout" style="gap: 2rem">
     <header class="flex-between">
       <div>
-        <h1 style="margin: 0;">My Jobs</h1>
-        <p class="muted">Manage your listings and track candidate applications</p>
+        <h1 style="margin: 0">Employer Dashboard</h1>
+        <p class="muted">Manage your job listings and track performance</p>
       </div>
       <button
         class="btn btn--ghost"
         type="button"
-        @click="jobsStore.fetchEmployerJobs"
+        @click="
+          jobsStore.fetchEmployerJobs();
+          fetchAnalytics();
+        "
         :disabled="isLoading"
       >
-        {{ isLoading ? "Refreshing..." : "Refresh List" }}
+        {{ isLoading ? "Refreshing..." : "Refresh" }}
       </button>
     </header>
 
-    <div v-if="jobsStore.error" class="alert alert--error">
-      {{ jobsStore.error }}
-    </div>
-    <div v-if="jobsStore.successMessage" class="alert alert--success">
-      {{ jobsStore.successMessage }}
+    <!-- Tabs -->
+    <div class="tabs">
+      <button
+        class="tab"
+        :class="{ 'tab--active': activeTab === 'overview' }"
+        @click="activeTab = 'overview'"
+      >
+        Overview
+      </button>
+      <button
+        class="tab"
+        :class="{ 'tab--active': activeTab === 'jobs' }"
+        @click="activeTab = 'jobs'"
+      >
+        My Jobs ({{ jobsStore.jobs.length }})
+      </button>
+      <button
+        class="tab"
+        :class="{ 'tab--active': activeTab === 'create' }"
+        @click="activeTab = 'create'"
+      >
+        Create Job
+      </button>
     </div>
 
-    <div v-if="isLoading" class="loading">Loading your listings...</div>
-
-    <div v-else class="job-list">
-      <article v-for="job in jobsStore.jobs" :key="job.id" class="card" style="padding: 1.75rem;">
-        <div v-if="editingId !== job.id">
-          <div class="job-card__header" style="margin-bottom: 1.5rem;">
-            <div style="flex: 1;">
-              <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.5rem;">
-                <h3 style="margin: 0;">{{ job.title }}</h3>
-                <span :class="statusClass(job.status)" style="font-size: 0.7rem;">{{ job.status.toUpperCase() }}</span>
-              </div>
-              <p class="muted" style="font-size: 0.9rem;">
-                Posted on {{ new Date(job.created_at).toLocaleDateString() }} • {{ job.location }} • {{ job.work_type }}
-              </p>
-            </div>
-            <div class="flex-wrap" style="justify-content: flex-end; gap: 0.75rem;">
-              <router-link :to="`/dashboard/employer/jobs/${job.id}/applications`" class="btn btn--ghost" style="font-size: 0.85rem;">
-                Applications ({{ job.applications_count || 0 }})
-              </router-link>
-              <button class="btn btn--ghost" style="font-size: 0.85rem;" @click="startEdit(job)">Edit</button>
-              <button class="btn btn--danger" style="font-size: 0.85rem; padding: 0.6rem 1rem;" @click="removeJob(job.id)">Delete</button>
-            </div>
+    <!-- Overview Tab -->
+    <div v-if="activeTab === 'overview'" class="overview-grid">
+      <div v-if="analytics.loading" class="loading">Loading analytics...</div>
+      <div v-else-if="analytics.error" class="alert alert--error">
+        {{ analytics.error }}
+      </div>
+      <div v-else-if="analytics.data">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number">{{ analytics.data.totals.jobs }}</div>
+            <div class="stat-label">Total Jobs</div>
           </div>
-
-          <div class="flex-wrap" style="gap: 0.5rem; margin-top: 1rem;">
-            <span v-for="skill in job.skills" :key="skill.id" class="chip" style="font-size: 0.75rem;">
-              {{ skill.skill_name }}
-            </span>
+          <div class="stat-card">
+            <div class="stat-number">
+              {{ analytics.data.totals.approved_jobs }}
+            </div>
+            <div class="stat-label">Approved Jobs</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">
+              {{ analytics.data.totals.applications }}
+            </div>
+            <div class="stat-label">Total Applications</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ analytics.data.totals.job_views }}</div>
+            <div class="stat-label">Job Views</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">{{ analytics.data.totals.payments }}</div>
+            <div class="stat-label">Payments</div>
           </div>
         </div>
 
-        <!-- Edit Form -->
-        <form v-else class="form" @submit.prevent="submitEdit(job.id)">
-          <div class="form__grid" style="grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+        <div class="recent-jobs">
+          <h3>Recent Jobs</h3>
+          <div v-if="!analytics.data.jobs.length" class="text-center muted">
+            No jobs posted yet.
+          </div>
+          <div v-else class="job-summary-list">
+            <div
+              v-for="job in analytics.data.jobs.slice(0, 5)"
+              :key="job.id"
+              class="job-summary"
+            >
+              <div class="job-summary__content">
+                <h4>{{ job.title }}</h4>
+                <p class="muted">
+                  {{ job.location }} • {{ job.applications_count }} applications
+                  • {{ job.views_count }} views
+                </p>
+              </div>
+              <span
+                :class="statusClass(job.status)"
+                style="font-size: 0.7rem"
+                >{{ job.status }}</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Jobs Tab -->
+    <div v-if="activeTab === 'jobs'">
+      <div v-if="jobsStore.error" class="alert alert--error">
+        {{ jobsStore.error }}
+      </div>
+      <div v-if="jobsStore.successMessage" class="alert alert--success">
+        {{ jobsStore.successMessage }}
+      </div>
+
+      <div v-if="isLoading" class="loading">Loading your listings...</div>
+
+      <div v-else class="job-list">
+        <article
+          v-for="job in jobsStore.jobs"
+          :key="job.id"
+          class="card job-card"
+        >
+          <div class="job-card__header">
+            <div class="job-card__info">
+              <h3>{{ job.title }}</h3>
+              <p class="muted">
+                {{ job.location }} • {{ job.work_type }} • Posted
+                {{ new Date(job.created_at).toLocaleDateString() }}
+              </p>
+              <div class="job-card__meta">
+                <span :class="statusClass(job.status)">{{ job.status }}</span>
+                <span class="meta-item"
+                  >{{ job.applications_count || 0 }} applications</span
+                >
+                <span class="meta-item">{{ job.views_count || 0 }} views</span>
+              </div>
+            </div>
+            <div class="job-card__actions">
+              <router-link
+                :to="`/dashboard/employer/jobs/${job.id}/applications`"
+                class="btn btn--outline"
+              >
+                View Applications
+              </router-link>
+              <button class="btn btn--ghost" @click="startEdit(job)">
+                Edit
+              </button>
+              <button class="btn btn--danger" @click="removeJob(job.id)">
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <div class="job-card__skills">
+            <span v-for="skill in job.skills" :key="skill.id" class="chip">
+              {{ skill.skill_name }}
+            </span>
+          </div>
+        </article>
+
+        <div
+          v-if="!jobsStore.jobs.length"
+          class="card text-center"
+          style="padding: 4rem 2rem"
+        >
+          <h3 class="muted">You haven't posted any jobs yet.</h3>
+          <p class="muted">Start hiring by creating your first job listing.</p>
+          <button class="btn" @click="activeTab = 'create'">
+            Create Your First Job
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create Job Tab -->
+    <div v-if="activeTab === 'create'" class="create-job">
+      <div class="card">
+        <h3>Create New Job Listing</h3>
+        <form class="form" @submit.prevent="submitCreate">
+          <div class="form__grid">
+            <div class="form__field">
+              <label>Job Title *</label>
+              <input
+                v-model="createForm.title"
+                type="text"
+                placeholder="e.g. Senior Software Engineer"
+              />
+              <span v-if="createErrors.title" class="form__error">{{
+                createErrors.title
+              }}</span>
+            </div>
+
+            <div class="form__field">
+              <label>Category *</label>
+              <select v-model="createForm.category_id">
+                <option value="" disabled>Select category</option>
+                <option
+                  v-for="category in jobsStore.categories"
+                  :key="category.id"
+                  :value="category.id"
+                >
+                  {{ category.name }}
+                </option>
+              </select>
+              <span v-if="createErrors.category_id" class="form__error">{{
+                createErrors.category_id
+              }}</span>
+            </div>
+
+            <div class="form__field">
+              <label>Location *</label>
+              <input
+                v-model="createForm.location"
+                type="text"
+                placeholder="City, State or Remote"
+              />
+              <span v-if="createErrors.location" class="form__error">{{
+                createErrors.location
+              }}</span>
+            </div>
+
+            <div class="form__field">
+              <label>Work Type *</label>
+              <select v-model="createForm.work_type">
+                <option value="remote">Remote</option>
+                <option value="onsite">Onsite</option>
+                <option value="hybrid">Hybrid</option>
+              </select>
+            </div>
+
+            <div class="form__field">
+              <label>Salary (Annual)</label>
+              <input
+                v-model="createForm.salary"
+                type="number"
+                placeholder="80000"
+              />
+            </div>
+
+            <div class="form__field">
+              <label>Application Deadline</label>
+              <input v-model="createForm.deadline" type="date" />
+            </div>
+
+            <div class="form__field form__field--full">
+              <label>Job Description *</label>
+              <textarea
+                v-model="createForm.description"
+                rows="4"
+                placeholder="Describe the role, responsibilities, and what you're looking for..."
+              ></textarea>
+              <span v-if="createErrors.description" class="form__error">{{
+                createErrors.description
+              }}</span>
+            </div>
+
+            <div class="form__field form__field--full">
+              <label>Responsibilities</label>
+              <textarea
+                v-model="createForm.responsibilities"
+                rows="3"
+                placeholder="Key responsibilities and duties..."
+              ></textarea>
+            </div>
+
+            <div class="form__field form__field--full">
+              <label>Requirements</label>
+              <textarea
+                v-model="createForm.requirements"
+                rows="3"
+                placeholder="Required skills, experience, qualifications..."
+              ></textarea>
+            </div>
+
+            <div class="form__field form__field--full">
+              <label>Required Skills</label>
+              <div class="skills">
+                <div class="skills__input">
+                  <input
+                    v-model="createSkillInput"
+                    type="text"
+                    placeholder="Add a skill..."
+                    @keydown.enter.prevent="addCreateSkill"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn--ghost"
+                    @click="addCreateSkill"
+                  >
+                    Add
+                  </button>
+                </div>
+                <div class="skills__list">
+                  <span
+                    v-for="skill in createForm.skills"
+                    :key="skill"
+                    class="chip"
+                  >
+                    {{ skill }}
+                    <button type="button" @click="removeCreateSkill(skill)">
+                      ×
+                    </button>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form__actions">
+            <button class="btn" type="submit" :disabled="isLoading">
+              {{ isLoading ? "Creating..." : "Create Job Listing" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div v-if="editingId" class="modal-overlay" @click="cancelEdit">
+      <div class="modal" @click.stop>
+        <div class="modal__header">
+          <h3>Edit Job Listing</h3>
+          <button class="modal__close" @click="cancelEdit">×</button>
+        </div>
+        <form class="form" @submit.prevent="submitEdit(editingId)">
+          <div class="form__grid">
             <div class="form__field">
               <label>Job Title</label>
               <input v-model="editForm.title" type="text" />
-              <span v-if="errors.title" class="form__error">{{ errors.title }}</span>
+              <span v-if="errors.title" class="form__error">{{
+                errors.title
+              }}</span>
             </div>
 
             <div class="form__field">
               <label>Category</label>
               <select v-model="editForm.category_id">
                 <option value="" disabled>Select category</option>
-                <option v-for="category in jobsStore.categories" :key="category.id" :value="category.id">
+                <option
+                  v-for="category in jobsStore.categories"
+                  :key="category.id"
+                  :value="category.id"
+                >
                   {{ category.name }}
                 </option>
               </select>
-              <span v-if="errors.category_id" class="form__error">{{ errors.category_id }}</span>
-            </div>
-
-            <div class="form__field form__field--full">
-              <label>Description</label>
-              <textarea v-model="editForm.description" rows="4"></textarea>
-              <span v-if="errors.description" class="form__error">{{ errors.description }}</span>
-            </div>
-
-            <div class="form__field">
-              <label>Salary (Annual)</label>
-              <input v-model="editForm.salary" type="text" placeholder="e.g. 80000" />
-              <span v-if="errors.salary" class="form__error">{{ errors.salary }}</span>
+              <span v-if="errors.category_id" class="form__error">{{
+                errors.category_id
+              }}</span>
             </div>
 
             <div class="form__field">
               <label>Location</label>
-              <input v-model="editForm.location" type="text" placeholder="City, State" />
-              <span v-if="errors.location" class="form__error">{{ errors.location }}</span>
+              <input v-model="editForm.location" type="text" />
+              <span v-if="errors.location" class="form__error">{{
+                errors.location
+              }}</span>
             </div>
 
             <div class="form__field">
@@ -214,39 +564,67 @@ onMounted(async () => {
             </div>
 
             <div class="form__field">
+              <label>Salary</label>
+              <input v-model="editForm.salary" type="number" />
+              <span v-if="errors.salary" class="form__error">{{
+                errors.salary
+              }}</span>
+            </div>
+
+            <div class="form__field">
               <label>Deadline</label>
               <input v-model="editForm.deadline" type="date" />
             </div>
 
             <div class="form__field form__field--full">
-              <label>Required Skills (Press Enter to add)</label>
+              <label>Description</label>
+              <textarea v-model="editForm.description" rows="4"></textarea>
+              <span v-if="errors.description" class="form__error">{{
+                errors.description
+              }}</span>
+            </div>
+
+            <div class="form__field form__field--full">
+              <label>Skills</label>
               <div class="skills">
                 <div class="skills__input">
-                  <input v-model="skillInput" type="text" placeholder="Add a skill..." @keydown.enter.prevent="addSkill" />
-                  <button type="button" class="btn btn--ghost" @click="addSkill">Add</button>
+                  <input
+                    v-model="skillInput"
+                    type="text"
+                    placeholder="Add a skill..."
+                    @keydown.enter.prevent="addSkill"
+                  />
+                  <button
+                    type="button"
+                    class="btn btn--ghost"
+                    @click="addSkill"
+                  >
+                    Add
+                  </button>
                 </div>
-                <div class="skills__list" style="margin-top: 0.75rem;">
-                  <span v-for="skill in editForm.skills" :key="skill" class="chip">
+                <div class="skills__list">
+                  <span
+                    v-for="skill in editForm.skills"
+                    :key="skill"
+                    class="chip"
+                  >
                     {{ skill }}
-                    <button type="button" @click="removeSkill(skill)" style="border: none; background: none; cursor: pointer; color: var(--danger); margin-left: 0.25rem;">×</button>
+                    <button type="button" @click="removeSkill(skill)">×</button>
                   </span>
                 </div>
               </div>
             </div>
           </div>
 
-          <div class="form__actions" style="margin-top: 2rem;">
-            <button class="btn btn--ghost" type="button" @click="cancelEdit">Cancel</button>
+          <div class="form__actions">
+            <button class="btn btn--ghost" type="button" @click="cancelEdit">
+              Cancel
+            </button>
             <button class="btn" type="submit" :disabled="isLoading">
-              {{ isLoading ? "Saving..." : "Update Listing" }}
+              {{ isLoading ? "Saving..." : "Update" }}
             </button>
           </div>
         </form>
-      </article>
-
-      <div v-if="!jobsStore.jobs.length" class="card text-center" style="padding: 4rem 2rem;">
-        <h3 class="muted">You haven't posted any jobs yet.</h3>
-        <p class="muted">Start hiring by creating your first job listing.</p>
       </div>
     </div>
   </div>
