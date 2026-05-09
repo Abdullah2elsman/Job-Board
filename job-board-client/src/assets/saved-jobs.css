@@ -1,0 +1,242 @@
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.page-header__left {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.page-icon {
+    font-size: 2rem;
+    width: 52px;
+    height: 52px;
+    background: var(--bg-secondary);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.page-title {
+    font-size: 1.6rem;
+    margin: 0 0 0.2rem;
+}
+
+.btn--sm {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+}
+
+/* Search */
+.saved-search {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: white;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    padding: 0.6rem 1.25rem;
+    max-width: 420px;
+    transition: border-color 0.2s;
+}
+
+.saved-search:focus-within {
+    border-color: var(--border-color-focus);
+    box-shadow: 0 0 0 4px hsla(var(--hue), 85%, 55%, 0.1);
+}
+
+.saved-search__icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+
+.saved-search__input {
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 0.9rem;
+    width: 100%;
+    padding: 0;
+    box-shadow: none;
+}
+
+/* Grid */
+.saved-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+}
+
+/* Card */
+.saved-card {
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.saved-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-3px);
+}
+
+.saved-card__top {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.saved-card__logo {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.saved-card__info {
+    flex: 1;
+    min-width: 0;
+}
+
+.saved-card__title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.2rem;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: color 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.saved-card__title:hover {
+    color: var(--primary);
+}
+
+.saved-card__company {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.saved-card__unsave {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: hsl(40, 90%, 50%);
+    padding: 0.2rem;
+    line-height: 1;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+
+.saved-card__unsave:hover {
+    transform: scale(1.2);
+}
+
+/* Meta */
+.saved-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    align-items: center;
+}
+
+.saved-card__work-type {
+    text-transform: capitalize;
+    background: var(--bg-secondary);
+    padding: 0.1rem 0.5rem;
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    font-size: 0.75rem;
+}
+
+.saved-card__salary {
+    font-weight: 700;
+    color: var(--success);
+    font-size: 0.82rem;
+}
+
+/* Skills */
+.saved-card__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.saved-chip {
+    font-size: 0.72rem;
+    padding: 0.2rem 0.6rem;
+}
+
+.saved-chip--more {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* Actions */
+.saved-card__actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-top: auto;
+    padding-top: 0.25rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.saved-card__view-btn {
+    flex: 1;
+    padding: 0.55rem;
+    font-size: 0.85rem;
+}
+
+.saved-card__remove-btn {
+    padding: 0.55rem 0.85rem;
+    font-size: 0.85rem;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.empty-state__icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+    margin: 0 0 0.5rem;
+}

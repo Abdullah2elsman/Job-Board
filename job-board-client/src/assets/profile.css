@@ -1,0 +1,217 @@
+/* Shared profile styles used by both candidate and employer EditProfile */
+.profile-page {
+    max-width: 760px;
+    margin: 0 auto;
+}
+
+.profile-page__header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.profile-avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: var(--primary);
+    color: white;
+    font-size: 1.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.profile-page__title {
+    font-size: 1.6rem;
+    margin: 0 0 0.25rem;
+}
+
+.profile-alert {
+    margin-bottom: 1.5rem;
+}
+
+.profile-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.profile-card {
+    padding: 1.75rem;
+}
+
+.profile-card__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.profile-card__heading h2 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.profile-card__icon {
+    font-size: 1.1rem;
+}
+
+.profile-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.profile-fields--grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+}
+
+@media (max-width: 600px) {
+    .profile-fields--grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.required {
+    color: var(--danger);
+}
+
+.form__error {
+    font-size: 0.8rem;
+    color: var(--danger);
+    margin-top: 0.25rem;
+}
+
+.profile-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding-top: 0.5rem;
+}
+
+.profile-save-btn {
+    padding: 0.75rem 2.5rem;
+}
+
+/* Candidate-specific: skills */
+.skills-input-row {
+    display: flex;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.skills-input-row input {
+    flex: 1;
+}
+
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.skill-chip__remove {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--danger);
+    font-size: 1rem;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* Candidate-specific: resume */
+.resume-current {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    font-size: 0.88rem;
+}
+
+.resume-current__icon {
+    font-size: 1rem;
+}
+
+.resume-current__label {
+    flex: 1;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.resume-upload {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    transition: border-color 0.2s;
+}
+
+.resume-upload:hover,
+.resume-upload--has-file {
+    border-color: var(--primary);
+}
+
+.resume-upload__input {
+    display: none;
+}
+
+.resume-upload__label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 2rem;
+    cursor: pointer;
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.resume-upload__icon {
+    font-size: 1.75rem;
+}
+
+.resume-upload__filename {
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Fade transition */
+.fade-enter-active,
+.fade-leave-active {
+    transition: opacity 0.3s;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+    opacity: 0;
+}

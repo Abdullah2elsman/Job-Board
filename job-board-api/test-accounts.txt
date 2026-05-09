@@ -1,0 +1,81 @@
+========================================
+  JOB BOARD — TEST ACCOUNTS
+  Password for all accounts: password123
+========================================
+
+── ADMIN ───────────────────────────────
+Role:     admin
+Email:    superadmin@jobboard.com
+Password: password123
+
+── Original fixed accounts ─────────────
+Role:     admin
+Email:    admin@gmail.com
+Password: 12345678
+
+Role:     employer
+Email:    employer@gmail.com
+Password: 12345678
+
+Role:     candidate
+Email:    candidate@gmail.com
+Password: 12345678
+
+── EMPLOYERS ───────────────────────────
+Name:     Sarah Mitchell
+Email:    sarah@technova.com
+Password: password123
+Company:  TechNova Solutions
+
+Name:     James Carter
+Email:    james@cloudpeak.com
+Password: password123
+Company:  CloudPeak Systems
+
+Name:     Lena Hoffmann
+Email:    lena@pixelcraft.de
+Password: password123
+Company:  PixelCraft Studio
+
+Name:     Omar Hassan
+Email:    omar@finedge.ae
+Password: password123
+Company:  FinEdge Capital
+
+Name:     Priya Sharma
+Email:    priya@mobilefirst.in
+Password: password123
+Company:  MobileFirst Inc
+
+── CANDIDATES ──────────────────────────
+Name:     Alex Johnson
+Email:    alex@candidate.com
+Password: password123
+Skills:   PHP, Laravel, Vue.js, MySQL, Docker
+
+Name:     Maria Garcia
+Email:    maria@candidate.com
+Password: password123
+Skills:   Python, TensorFlow, Pandas, SQL, Scikit-learn
+
+Name:     Kevin Nguyen
+Email:    kevin@candidate.com
+Password: password123
+Skills:   AWS, Kubernetes, Docker, Terraform, CI/CD
+
+Name:     Fatima Al-Rashid
+Email:    fatima@candidate.com
+Password: password123
+Skills:   Figma, Adobe XD, Tailwind CSS, Sketch, Prototyping
+
+Name:     Lucas Müller
+Email:    lucas@candidate.com
+Password: password123
+Skills:   Flutter, React Native, Dart, Firebase, Swift
+
+Name:     Aisha Okonkwo
+Email:    aisha@candidate.com
+Password: password123
+Skills:   Solidity, Web3.js, Hardhat, Ethers.js, React
+
+========================================

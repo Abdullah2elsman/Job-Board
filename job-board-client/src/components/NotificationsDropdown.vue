@@ -2,6 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import api from '../services/api'
 import { useAuthStore } from '../stores/auth'
+import '../assets/notifications.css'
 
 const authStore = useAuthStore()
 const notifications = ref([])
@@ -76,100 +77,3 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped>
-.notifications-dropdown {
-  position: relative;
-  display: inline-block;
-}
-
-.notifications-btn {
-  background: none;
-  border: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  padding: 0.5rem;
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.badge-count {
-  position: absolute;
-  top: 0;
-  right: 0;
-  background: var(--danger);
-  color: white;
-  border-radius: 50%;
-  padding: 0.1rem 0.4rem;
-  font-size: 0.7rem;
-  font-weight: bold;
-}
-
-.dropdown-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 320px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  z-index: 100;
-  overflow: hidden;
-  margin-top: 0.5rem;
-}
-
-.dropdown-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  background: var(--bg-secondary);
-}
-
-.dropdown-header h4 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.dropdown-content {
-  max-height: 350px;
-  overflow-y: auto;
-}
-
-.empty-state {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-muted);
-}
-
-.notification-item {
-  padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
-  transition: background 0.2s;
-}
-
-.notification-item:last-child {
-  border-bottom: none;
-}
-
-.notification-item.unread {
-  background: var(--bg-secondary);
-}
-
-.notification-item strong {
-  display: block;
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
-}
-
-.notification-item p {
-  margin: 0 0 0.5rem 0;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-}
-
-.notification-item .time {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-</style>
