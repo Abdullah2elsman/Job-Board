@@ -34,7 +34,7 @@ class JobController extends Controller
             ->experienceLevel($request->experience_level)
             ->sort($request->sort_by);
 
-        $jobs = $query->paginate(10);
+        $jobs = $query->paginate(100);
 
         return $this->successResponse($jobs, 'Approved jobs fetched successfully');
     }
@@ -50,7 +50,7 @@ class JobController extends Controller
 
         if (!empty($skills)) {
             $job->skills()->createMany(
-                collect($skills)->map(fn ($skill) => ['skill_name' => $skill])->all()
+                collect($skills)->map(fn($skill) => ['skill_name' => $skill])->all()
             );
         }
 
@@ -99,7 +99,7 @@ class JobController extends Controller
         if ($skills !== null) {
             $job->skills()->delete();
             $job->skills()->createMany(
-                collect($skills)->map(fn ($skill) => ['skill_name' => $skill])->all()
+                collect($skills)->map(fn($skill) => ['skill_name' => $skill])->all()
             );
         }
 

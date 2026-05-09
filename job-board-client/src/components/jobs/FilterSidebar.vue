@@ -39,8 +39,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <aside class="card" style="padding: 1.5rem; height: fit-content;">
-    <h3>Filters</h3>
+  <div class="filter-card">
+    <div class="filter-card__title">
+      <h3>Filters</h3>
+    </div>
     <form @submit.prevent="applyFilters" class="form">
       <div class="form__field">
         <label>Keyword</label>
@@ -85,7 +87,7 @@ onMounted(() => {
 
       <div class="form__field">
         <label>Salary Range</label>
-        <div style="display: flex; gap: 0.5rem;">
+        <div class="salary-inputs">
           <input v-model="filters.min_salary" type="number" placeholder="Min" />
           <input v-model="filters.max_salary" type="number" placeholder="Max" />
         </div>
@@ -101,10 +103,112 @@ onMounted(() => {
         </select>
       </div>
 
-      <div class="form__actions" style="margin-top: 1.5rem; justify-content: flex-start;">
-        <button type="submit" class="btn" :disabled="jobsStore.loading">Apply</button>
+      <div class="form__actions">
+        <button type="submit" class="btn" :disabled="jobsStore.loading">Apply Filters</button>
         <button type="button" class="btn btn--ghost" @click="clearFilters">Clear</button>
       </div>
     </form>
-  </aside>
+  </div>
 </template>
+
+<style scoped>
+.filter-card {
+  background: rgba(255, 255, 255, 0.9);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem 1.5rem 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.filter-card__title {
+  margin-bottom: 1.25rem;
+}
+
+.filter-card__title h3 {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+/* Override global .form flex with grid */
+.filter-card .form {
+  display: grid !important;
+  flex-direction: unset !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem 1.5rem;
+  align-items: end;
+}
+
+.filter-card .form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0; /* prevent overflow */
+}
+
+.filter-card .form__field label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.filter-card .form__field input,
+.filter-card .form__field select {
+  height: 40px;
+  padding: 0 0.85rem;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Salary range: two inputs side by side inside one grid cell */
+.salary-inputs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.salary-inputs input {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  padding: 0 0.75rem;
+  font-size: 0.9rem;
+  box-sizing: border-box;
+}
+
+/* Actions row spans full width */
+.form__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+.form__actions .btn {
+  height: 40px;
+  padding: 0 1.5rem;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 900px) {
+  .filter-card .form {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .filter-card .form {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
