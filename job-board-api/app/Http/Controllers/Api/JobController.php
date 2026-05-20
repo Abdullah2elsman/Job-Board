@@ -24,9 +24,16 @@ class JobController extends Controller
     private function getFilteredJobs(Request $request): JsonResponse
     {
         $query = Job::query()
-            ->where('status', 'approved')
-            ->with(['category', 'employer', 'skills'])
-            ->search($request->keyword)
+            ->with(['category', 'employer', 'skills']);
+
+        // If user is employer and requesting their own jobs, show all statuses
+        if ($request->user() && $request->user()->hasRole('employer') && $request->mine) {
+            $query->where('employer_id', $request->user()->id);
+        } else {
+            $query->where('status', 'approved');
+        }
+
+        $query->search($request->keyword)
             ->location($request->location)
             ->category($request->category_id)
             ->workType($request->work_type)
@@ -36,7 +43,7 @@ class JobController extends Controller
 
         $jobs = $query->paginate(100);
 
-        return $this->successResponse($jobs, 'Approved jobs fetched successfully');
+        return $this->successResponse($jobs, 'Jobs fetched successfully');
     }
 
     public function store(StoreJobRequest $request): JsonResponse
@@ -124,6 +131,19 @@ class JobController extends Controller
         $job->delete();
 
         return $this->successResponse(null, 'Job deleted successfully');
+    }
+
+    public function employerJobs(Request $request): JsonResponse
+    {
+        $query = Job::query()
+            ->with(['category', 'employer', 'skills'])
+            ->withCount(['applications'])
+            ->where('employer_id', $request->user()->id)
+            ->latest();
+
+        $jobs = $query->paginate(100);
+
+        return $this->successResponse($jobs, 'Employer jobs fetched successfully');
     }
 
     public function approve(Request $request, int $id): JsonResponse

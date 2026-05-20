@@ -6,11 +6,9 @@ import { useJobsStore } from "../../stores/jobs";
 const jobsStore = useJobsStore();
 
 const activeTab = ref("overview");
-const analytics = reactive({
-  loading: false,
-  data: null,
-  error: null,
-});
+const analyticsLoading = ref(false);
+const analyticsData = ref(null);
+const analyticsError = ref(null);
 
 const editingId = ref(null);
 const editForm = reactive({
@@ -170,16 +168,16 @@ const statusClass = (status) => {
 };
 
 const fetchAnalytics = async () => {
-  analytics.loading = true;
-  analytics.error = null;
+  analyticsLoading.value = true;
+  analyticsError.value = null;
   try {
     const { data } = await api.get("/api/analytics");
-    analytics.data = data.data;
+    analyticsData.value = data.data;
   } catch (error) {
-    analytics.error =
+    analyticsError.value =
       error?.response?.data?.message || "Failed to load analytics";
   } finally {
-    analytics.loading = false;
+    analyticsLoading.value = false;
   }
 };
 
@@ -239,46 +237,46 @@ onMounted(async () => {
 
     <!-- Overview Tab -->
     <div v-if="activeTab === 'overview'" class="overview-grid">
-      <div v-if="analytics.loading" class="loading">Loading analytics...</div>
-      <div v-else-if="analytics.error" class="alert alert--error">
-        {{ analytics.error }}
+      <div v-if="analyticsLoading" class="loading">Loading analytics...</div>
+      <div v-else-if="analyticsError" class="alert alert--error">
+        {{ analyticsError }}
       </div>
-      <div v-else-if="analytics.data">
+      <div v-else-if="analyticsData">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="stat-number">{{ analytics.data.totals.jobs }}</div>
+            <div class="stat-number">{{ analyticsData.totals.jobs }}</div>
             <div class="stat-label">Total Jobs</div>
           </div>
           <div class="stat-card">
             <div class="stat-number">
-              {{ analytics.data.totals.approved_jobs }}
+              {{ analyticsData.totals.approved_jobs }}
             </div>
             <div class="stat-label">Approved Jobs</div>
           </div>
           <div class="stat-card">
             <div class="stat-number">
-              {{ analytics.data.totals.applications }}
+              {{ analyticsData.totals.applications }}
             </div>
             <div class="stat-label">Total Applications</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">{{ analytics.data.totals.job_views }}</div>
+            <div class="stat-number">{{ analyticsData.totals.job_views }}</div>
             <div class="stat-label">Job Views</div>
           </div>
           <div class="stat-card">
-            <div class="stat-number">{{ analytics.data.totals.payments }}</div>
+            <div class="stat-number">{{ analyticsData.totals.payments }}</div>
             <div class="stat-label">Payments</div>
           </div>
         </div>
 
         <div class="recent-jobs">
           <h3>Recent Jobs</h3>
-          <div v-if="!analytics.data.jobs.length" class="text-center muted">
+          <div v-if="!analyticsData.jobs.length" class="text-center muted">
             No jobs posted yet.
           </div>
           <div v-else class="job-summary-list">
             <div
-              v-for="job in analytics.data.jobs.slice(0, 5)"
+              v-for="job in analyticsData.jobs.slice(0, 5)"
               :key="job.id"
               class="job-summary"
             >

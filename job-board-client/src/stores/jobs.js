@@ -24,9 +24,7 @@ export const useJobsStore = defineStore("jobs", {
       this.loading = true;
       this.error = null;
       try {
-        const { data } = await api.get("/api/jobs", {
-          params: { mine: 1 },
-        });
+        const { data } = await api.get("/api/employer/jobs");
         const payload = data?.data || data;
         this.jobs = payload?.data || payload || [];
         this.pagination = payload?.meta || null;

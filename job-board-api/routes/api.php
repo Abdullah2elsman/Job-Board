@@ -40,6 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Job Routes for Employer
     Route::middleware(['role:employer'])->group(function () {
+        Route::get('/employer/jobs', [JobController::class, 'employerJobs']);
         Route::post('/jobs', [JobController::class, 'store']);
         Route::put('/jobs/{id}', [JobController::class, 'update']);
         Route::delete('/jobs/{id}', [JobController::class, 'destroy']);
